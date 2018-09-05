@@ -1,3 +1,5 @@
+#config files
+configuration.json
 # Logs
 logs
 *.log
