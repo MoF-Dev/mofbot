@@ -1,0 +1,22 @@
+{
+  "name": "mofbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MoF-Dev/mofbot.git"
+  },
+  "author": "atan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MoF-Dev/mofbot/issues"
+  },
+  "homepage": "https://github.com/MoF-Dev/mofbot#readme",
+  "dependencies": {
+    "discord.js": "^11.4.2"
+  }
+}
