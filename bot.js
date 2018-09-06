@@ -4,6 +4,11 @@ const {prefix, token} = require('./configuration.json');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
+chainWriters = new Discord.Collection();
+var chainAuthor = "";
+var chain = 0;
+var currChain = "";
+
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for(const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -17,7 +22,7 @@ client.on('ready', () => {
 // Handles all errors....for now
 client.on('error', console.error);
 
-// Fires when any message is sent in a channel bot is in
+// Fires when any message is sent in a channel bot is also in
 client.on('message', message => {
     // Returns if message does not have prefix or if author is a bot
     if(!message.content.startsWith(prefix) || message.author.bot){
@@ -40,12 +45,25 @@ function autoResponse(message){
     if(msg === 'how\'s life' || msg === 'hows life'){
         return message.reply('Fighting~');
     }
+    else if(msg === "why are we here" || msg === "why are we here?"){
+        return message.reply('\n:eyes: alright :ear: listen:ear:  up:arrow_up:  kiddo:baby:\nlet :clap: me:cowboy:  tell you:boy:   what we\'re here:point_down:  to do\nwe\'re :raised_hand:  not here to :b: e clowns:clown:  or :b:itches:cry:\nwe\'re :raised_hand:  not here to play :two: :one:  :grey_question: questions:question:  nor do we have the time:alarm_clock:\nso if you got any other dumb:snail:  ideas:bulb:  you best get outta:wheelchair:  here:wave: \nwe\'re here for :one: one reason and :one: one reason only:ok_hand: ,\nand that is to :first_place: win:ok_hand:')
+    }
+    else{
+        checkChain(message);
+    }
+}
+
+function checkChain(message){
+    if(chainWriters.has(message.author.id)){
+        chainWriters = new Discord.Collection;
+        chainWriters.set(message.author.id, message.content);
+        return;
+    }
+    chainWriters.set(message.author.id, message.content);
 }
 
 // Handles all messages (auto responses & commands)
 function handleCommand(message, commandName, args){
-
-    console.log("Auto responding")
 
     const command = client.commands.get(commandName) 
         || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName))
