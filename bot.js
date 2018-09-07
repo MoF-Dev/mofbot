@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-const {prefix, token} = require('./configuration.json');
+const {prefix, token, game} = require('./configuration.json');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
@@ -11,6 +11,9 @@ for(const file of commandFiles) {
 }
 // Notifies that bot is live
 client.on('ready', () => {
+    client.user.setPresence({ game: { name: game }, status: 'Online' })
+    .then(console.log('Presence Set.'))
+    .catch(console.error);
     console.log('Ready!');
 });
 
