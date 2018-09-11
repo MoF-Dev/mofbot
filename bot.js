@@ -90,7 +90,7 @@ function checkChain(message){
     else {
         console.log(`${message.channel.name} chain not yet formed. Length: ${channel.array().length}`);
     }
-    }
+}
 
 function resetChannel(message){
     chainChannels.set(message.channel, new Discord.Collection);
