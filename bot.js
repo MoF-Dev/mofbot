@@ -4,10 +4,9 @@ const {prefix, token} = require('./configuration.json');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
-chainWriters = new Discord.Collection();
+chainChannels = new Discord.Collection();
 var chainAuthor = "";
-var chain = 0;
-var currChain = "";
+var chain = false;
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for(const file of commandFiles) {
@@ -54,12 +53,51 @@ function autoResponse(message){
 }
 
 function checkChain(message){
-    if(chainWriters.has(message.author.id)){
-        chainWriters = new Discord.Collection;
-        chainWriters.set(message.author.id, message.content);
-        return;
+    // Create channel
+    var channel = null;
+    if(!chainChannels.has(message.channel)){
+        chainChannels.set(message.channel, new Discord.Collection);
     }
-    chainWriters.set(message.author.id, message.content);
+    channel = chainChannels.get(message.channel);
+
+    // //nothing in channel, set initial message
+    if(!channel.array().length){
+        console.log(`Channel is empty. Adding initial author.`);
+        console.log(`Adding ${message.author.username} with message ${message.content}`);
+        channel.set(message.author.id, message.content);
+        chainAuthor = message.author.id;
+    }
+    // // repeated author, create new channel, fill with message
+    else if(channel.has(message.author.id)){
+        console.log(`Repeat author found. Creating new channel and updating initial author`);
+        channel = resetChannel(message)
+    }
+    // add next author if message matches
+    else if(channel.get(chainAuthor) === message.content){
+        console.log(`Adding ${message.author.username} with message ${message.content}`);
+        channel.set(message.author.id, message.content);
+    }
+    // message mismatch, create new channel, fill with message
+    else {
+        console.log(`Message does not match. Creating new channel and updating initial author.`)
+        channel = resetChannel(message)
+    }
+
+    if(channel.array().length >= 3){
+        console.log(`${message.channel.name} chain formed. Length: ${channel.array().length}`);
+        chain = true;
+    }
+    else {
+        console.log(`${message.channel.name} chain not yet formed. Length: ${channel.array().length}`);
+    }
+    }
+
+function resetChannel(message){
+    chainChannels.set(message.channel, new Discord.Collection);
+    var channel = chainChannels.get(message.channel);
+    channel.set(message.author.id, message.content);
+    chainAuthor = message.author.id;
+    return channel
 }
 
 // Handles all messages (auto responses & commands)
