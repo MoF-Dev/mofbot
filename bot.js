@@ -7,6 +7,7 @@ const cooldowns = new Discord.Collection();
 chainChannels = new Discord.Collection();
 var chainAuthor = "";
 var chain = false;
+var interruptor;
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for(const file of commandFiles) {
@@ -24,7 +25,10 @@ client.on('error', console.error);
 // Fires when any message is sent in a channel bot is also in
 client.on('message', message => {
     // Returns if message does not have prefix or if author is a bot
-    if(!message.content.startsWith(prefix) || message.author.bot){
+    if(!message.content.startsWith(prefix)){
+        if(message.author.bot){
+            return
+        }
         return autoResponse(message)
     };
     // Splits message by prefix and arguments
@@ -52,36 +56,83 @@ function autoResponse(message){
     }
 }
 
+function punish(traitor){
+    // todo
+    traitor.reply("you are a bad person");
+}
+
+function chainBrokenMessage(channel, message){
+    console.log("Chain broken!");
+    message.channel.send(`Chain broken by ${message.author.username}! Length: ${channel.array().length}`);
+}
+
+function chainCompletedMessage(channel, message){
+    console.log("Chain completed");
+    message.channel.send(`Chain completed by ${message.author.username}! Length: ${channel.array().length}! Author: ${chainAuthor}`);
+}
+
+function handleBrokenChain(channel, message){
+    interruptor = message.author.id;
+    if(channel.array().length >= 5){
+        chainCompletedMessage(channel, message);
+    }
+    else{
+        chainBrokenMessage(channel, message);
+        punish(interruptor);
+    }
+    chain = false;
+    chainChannels.set(message.channel, new Discord.Collection);
+}
+
 function checkChain(message){
-    // Create channel
+    // Set channel
     var channel = null;
     if(!chainChannels.has(message.channel)){
         chainChannels.set(message.channel, new Discord.Collection);
     }
     channel = chainChannels.get(message.channel);
 
-    // //nothing in channel, set initial message
-    if(!channel.array().length){
-        console.log(`Channel is empty. Adding initial author.`);
-        console.log(`Adding ${message.author.username} with message ${message.content}`);
-        channel.set(message.author.id, message.content);
-        chainAuthor = message.author.id;
+    if(chain){
+        // repeat author handle
+        if(channel.has(message.author.id)){
+            handleBrokenChain(channel, message);
+        }
+        // message mismatch handle
+        else if(channel.get(chainAuthor) != message.content){
+            handleBrokenChain(channel, message)
+        }
+        // add next author if message matches
+        else if(channel.get(chainAuthor) === message.content){
+            channel.set(message.author.id, message.content);
+        }
+
     }
-    // // repeated author, create new channel, fill with message
-    else if(channel.has(message.author.id)){
-        console.log(`Repeat author found. Creating new channel and updating initial author`);
-        channel = resetChannel(message)
+    // Not a chain, continue adding.
+    else{
+        //nothing in channel, set initial message
+        if(!channel.array().length){
+            console.log(`Channel is empty. Adding initial author.`);
+            console.log(`Adding ${message.author.username} with message ${message.content}`);
+            channel.set(message.author.id, message.content);
+            chainAuthor = message.author.id;
+        }
+        // repeated author, create new channel, fill with message
+        else if(channel.has(message.author.id)){
+            console.log(`Repeat author found. Creating new channel and updating initial author`);
+            channel = resetChannel(message)
+        }
+        // add next author if message matches
+        else if(channel.get(chainAuthor) === message.content){
+            console.log(`Adding ${message.author.username} with message ${message.content}`);
+            channel.set(message.author.id, message.content);
+        }
+        // message mismatch, create new channel, fill with message
+        else {
+            console.log(`Message does not match. Creating new channel and updating initial author.`)
+            channel = resetChannel(message)
+        }
     }
-    // add next author if message matches
-    else if(channel.get(chainAuthor) === message.content){
-        console.log(`Adding ${message.author.username} with message ${message.content}`);
-        channel.set(message.author.id, message.content);
-    }
-    // message mismatch, create new channel, fill with message
-    else {
-        console.log(`Message does not match. Creating new channel and updating initial author.`)
-        channel = resetChannel(message)
-    }
+    
 
     if(channel.array().length >= 3){
         console.log(`${message.channel.name} chain formed. Length: ${channel.array().length}`);
