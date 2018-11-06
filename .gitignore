@@ -131,3 +131,6 @@ fabric.properties
 
 **/*.js
 **/*.js.map
+
+# Project Build location
+build/
