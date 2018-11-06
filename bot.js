@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-const {prefix, token, game} = require('./configuration.json');
+const {prefix, token, game, poome_ID} = require('./configuration.json');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
@@ -22,6 +22,10 @@ client.on('error', console.error);
 
 // Fires when any message is sent in a channel bot is in
 client.on('message', message => {
+    // Handling F1 Poome every time his specific ID sends a message.
+    if(message.author.id == poome_ID){
+        message.channel.send("F1 Poome.")
+    }
     // Returns if message does not have prefix or if author is a bot
     if(!message.content.startsWith(prefix) || message.author.bot){
         return autoResponse(message)
@@ -47,7 +51,6 @@ function autoResponse(message){
 
 // Handles all messages (auto responses & commands)
 function handleCommand(message, commandName, args){
-
     console.log("Auto responding")
 
     const command = client.commands.get(commandName) 
