@@ -5,7 +5,7 @@
   "main": "bot.js",
   "scripts": {
     "test": "tslint --project .",
-    "postinstall": "tsc --project .",
+    "postinstall": "tsc --project . --outdir ./build",
     "start": "node bot.js"
   },
   "repository": {
